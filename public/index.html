@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZONE — Retro Battle Royale</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --panel: #12121a;
+    --border: #2a2a3a;
+    --accent: #ff4444;
+    --accent2: #ffcc00;
+    --accent3: #44ffaa;
+    --text: #e8e8ff;
+    --muted: #666688;
+    --zone: rgba(255, 68, 68, 0.15);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'VT323', monospace;
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Lobby Screen ── */
+  #lobby {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: var(--bg);
+    z-index: 100;
+  }
+
+  .lobby-bg {
+    position: absolute; inset: 0;
+    background: 
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,68,68,0.05) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,68,68,0.05) 40px);
+    pointer-events: none;
+  }
+
+  .title-wrap {
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+  }
+
+  .game-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(48px, 10vw, 96px);
+    color: var(--accent);
+    text-shadow: 
+      0 0 20px rgba(255,68,68,0.8),
+      0 0 40px rgba(255,68,68,0.4),
+      4px 4px 0 #8b0000,
+      8px 8px 0 #4a0000;
+    animation: titlePulse 2s ease-in-out infinite;
+    letter-spacing: -2px;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { text-shadow: 0 0 20px rgba(255,68,68,0.8), 0 0 40px rgba(255,68,68,0.4), 4px 4px 0 #8b0000, 8px 8px 0 #4a0000; }
+    50% { text-shadow: 0 0 30px rgba(255,68,68,1), 0 0 60px rgba(255,68,68,0.6), 4px 4px 0 #8b0000, 8px 8px 0 #4a0000; }
+  }
+
+  .game-sub {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(8px, 2vw, 14px);
+    color: var(--accent2);
+    margin-top: 12px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+
+  .lobby-card {
+    background: var(--panel);
+    border: 2px solid var(--border);
+    padding: 32px;
+    width: min(400px, 90vw);
+    position: relative;
+  }
+  .lobby-card::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(45deg, var(--accent), transparent, var(--accent2), transparent);
+    z-index: -1;
+    animation: borderSpin 3s linear infinite;
+  }
+
+  @keyframes borderSpin {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+  }
+
+  .lobby-label {
+    font-size: 20px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+  }
+
+  .lobby-input {
+    width: 100%;
+    background: #1a1a2e;
+    border: 2px solid var(--border);
+    color: var(--text);
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    padding: 12px 16px;
+    outline: none;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+  .lobby-input:focus { border-color: var(--accent); }
+
+  .btn-join {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    padding: 16px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    transition: all 0.15s;
+    box-shadow: 0 4px 0 #8b0000;
+  }
+  .btn-join:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #8b0000; }
+  .btn-join:active { transform: translateY(2px); box-shadow: 0 2px 0 #8b0000; }
+
+  .controls-hint {
+    margin-top: 20px;
+    color: var(--muted);
+    font-size: 16px;
+    text-align: center;
+    line-height: 1.8;
+    letter-spacing: 1px;
+  }
+
+  /* ── HUD ── */
+  #hud {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(10,10,15,0.85);
+    border-bottom: 1px solid var(--border);
+    z-index: 50;
+    pointer-events: none;
+    backdrop-filter: blur(4px);
+  }
+
+  .hud-left, .hud-right { display: flex; align-items: center; gap: 20px; }
+
+  .hp-bar-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .hp-label { font-size: 14px; color: var(--muted); letter-spacing: 2px; }
+  .hp-bar-outer { width: 200px; height: 16px; background: #1a1a2e; border: 1px solid var(--border); }
+  .hp-bar-inner { height: 100%; background: var(--accent3); transition: width 0.15s; }
+  .hp-text { font-size: 22px; color: var(--accent3); }
+
+  .stat-box { text-align: center; }
+  .stat-val { font-size: 32px; color: var(--accent2); }
+  .stat-lbl { font-size: 12px; color: var(--muted); letter-spacing: 2px; }
+
+  .zone-timer { 
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px; color: var(--accent);
+    text-align: center;
+    animation: zonePulse 1s ease-in-out infinite;
+  }
+  @keyframes zonePulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  .minimap-wrap {
+    position: fixed;
+    bottom: 16px; right: 16px;
+    z-index: 50;
+    pointer-events: none;
+  }
+  #minimap {
+    border: 2px solid var(--border);
+    background: rgba(10,10,15,0.8);
+    display: block;
+  }
+
+  /* ── Kill Feed ── */
+  #killfeed {
+    position: fixed;
+    top: 70px; right: 16px;
+    z-index: 50;
+    pointer-events: none;
+    width: 280px;
+  }
+  .kf-item {
+    background: rgba(10,10,15,0.85);
+    border-left: 3px solid var(--accent);
+    padding: 6px 10px;
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 4px;
+    animation: kfIn 0.2s ease-out;
+    border-radius: 0 4px 4px 0;
+  }
+  @keyframes kfIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* ── Dead / Win Overlay ── */
+  #overlay {
+    position: fixed; inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.7);
+    z-index: 80;
+    backdrop-filter: blur(4px);
+  }
+  #overlay.show { display: flex; }
+  .overlay-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(24px, 6vw, 56px);
+    margin-bottom: 16px;
+  }
+  .overlay-sub { font-size: 24px; color: var(--muted); margin-bottom: 32px; }
+  .btn-restart {
+    background: var(--accent2);
+    color: #000;
+    border: none;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    padding: 14px 28px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    box-shadow: 0 4px 0 #8b6000;
+    transition: all 0.15s;
+  }
+  .btn-restart:hover { transform: translateY(-2px); }
+  .btn-restart:active { transform: translateY(2px); box-shadow: 0 2px 0 #8b6000; }
+
+  /* ── Canvas ── */
+  #gameCanvas {
+    display: block;
+    cursor: crosshair;
+    image-rendering: pixelated;
+  }
+
+  #connecting {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--bg); z-index: 200;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 20px; color: var(--accent2);
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50%{opacity:0} }
+
+  .player-count {
+    font-size: 20px; color: var(--accent3);
+    text-align: center; margin-top: 12px;
+    letter-spacing: 2px;
+  }
+
+  #lobby-status {
+    margin-top: 16px; text-align: center;
+    font-size: 18px; color: var(--muted);
+    min-height: 24px;
+  }
+</style>
+</head>
+<body>
+
+<div id="connecting">CONNECTING...</div>
+
+<div id="lobby">
+  <div class="lobby-bg"></div>
+  <div class="title-wrap">
+    <div class="game-title">ZONE</div>
+    <div class="game-sub">Retro Battle Royale</div>
+  </div>
+  <div class="lobby-card">
+    <div class="lobby-label">ENTER YOUR NAME</div>
+    <input class="lobby-input" id="nameInput" type="text" placeholder="PLAYER_1" maxlength="16" autocomplete="off" spellcheck="false">
+    <button class="btn-join" id="joinBtn">DROP IN</button>
+    <div id="lobby-status"></div>
+    <div class="controls-hint">
+      WASD / ARROWS — MOVE<br>
+      MOUSE — AIM &amp; SHOOT<br>
+      SURVIVE THE ZONE
+    </div>
+  </div>
+</div>
+
+<div id="hud" style="display:none">
+  <div class="hud-left">
+    <div class="hp-bar-wrap">
+      <div class="hp-label">HP</div>
+      <div class="hp-bar-outer"><div class="hp-bar-inner" id="hpBar" style="width:100%"></div></div>
+    </div>
+    <div class="hp-text" id="hpText">100</div>
+  </div>
+  <div style="text-align:center">
+    <div class="zone-timer" id="zoneTimer">ZONE SHRINKING</div>
+    <div id="aliveCount" style="font-size:20px;color:var(--accent2);margin-top:4px;letter-spacing:2px"></div>
+  </div>
+  <div class="hud-right">
+    <div class="stat-box">
+      <div class="stat-val" id="killCount">0</div>
+      <div class="stat-lbl">KILLS</div>
+    </div>
+  </div>
+</div>
+
+<div id="killfeed"></div>
+
+<div class="minimap-wrap">
+  <canvas id="minimap" width="160" height="120"></canvas>
+</div>
+
+<div id="overlay">
+  <div class="overlay-title" id="overlayTitle">YOU DIED</div>
+  <div class="overlay-sub" id="overlaySub">better luck next time</div>
+  <button class="btn-restart" id="restartBtn">PLAY AGAIN</button>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/game.js"></script>
+</body>
+</html>
