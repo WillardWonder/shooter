@@ -302,20 +302,39 @@
 
 <div id="hud" style="display:none">
   <div class="hud-left">
-    <div class="hp-bar-wrap">
-      <div class="hp-label">HP</div>
-      <div class="hp-bar-outer"><div class="hp-bar-inner" id="hpBar" style="width:100%"></div></div>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      <div class="hp-bar-wrap">
+        <div class="hp-label">HP</div>
+        <div class="hp-bar-outer"><div class="hp-bar-inner" id="hpBar" style="width:100%"></div></div>
+      </div>
+      <div class="hp-bar-wrap" id="shieldRow" style="opacity:0.3">
+        <div class="hp-label" style="color:#4488ff">SHIELD</div>
+        <div class="hp-bar-outer"><div class="hp-bar-inner" id="shieldBar" style="width:0%;background:#4488ff"></div></div>
+      </div>
     </div>
-    <div class="hp-text" id="hpText">100</div>
+    <div style="display:flex;flex-direction:column;align-items:center">
+      <div class="hp-text" id="hpText">100</div>
+      <div style="font-size:14px;color:#4488ff" id="shieldText">0</div>
+    </div>
   </div>
   <div style="text-align:center">
-    <div class="zone-timer" id="zoneTimer">ZONE SHRINKING</div>
-    <div id="aliveCount" style="font-size:20px;color:var(--accent2);margin-top:4px;letter-spacing:2px"></div>
+    <div class="zone-timer" id="zoneTimer">ZONE ACTIVE</div>
+    <div id="aliveCount" style="font-size:18px;color:var(--accent2);margin-top:4px;letter-spacing:2px"></div>
   </div>
   <div class="hud-right">
-    <div class="stat-box">
-      <div class="stat-val" id="killCount">0</div>
-      <div class="stat-lbl">KILLS</div>
+    <div id="weaponBox" style="border:2px solid #aaa;padding:6px 12px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:100px">
+      <div id="weaponInfo" style="font-size:18px;display:flex;align-items:center;gap:6px">🔫 Pistol</div>
+      <div id="ammoInfo" style="font-size:14px;color:#888;letter-spacing:1px">30 ammo</div>
+    </div>
+    <div style="display:flex;gap:16px">
+      <div class="stat-box">
+        <div class="stat-val" id="killCount">0</div>
+        <div class="stat-lbl">KILLS</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="scoreCount" style="color:#44ffaa">0</div>
+        <div class="stat-lbl">SCORE</div>
+      </div>
     </div>
   </div>
 </div>
@@ -329,6 +348,7 @@
 <div id="overlay">
   <div class="overlay-title" id="overlayTitle">YOU DIED</div>
   <div class="overlay-sub" id="overlaySub">better luck next time</div>
+  <div id="scoreboard" style="display:none;width:320px;margin-bottom:24px;font-size:16px"></div>
   <button class="btn-restart" id="restartBtn">PLAY AGAIN</button>
 </div>
 
