@@ -2,279 +2,108 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ZONE — Retro Battle Royale</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0a0f;--panel:#12121a;--border:#2a2a3a;
+  --accent:#ff4444;--accent2:#ffcc00;--accent3:#44ffaa;
+  --text:#e8e8ff;--muted:#666688;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'VT323',monospace;touch-action:none;}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ── Connecting ── */
+#connecting{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:200;font-family:'Press Start 2P';font-size:20px;color:var(--accent2);animation:blink 1s step-end infinite;}
+@keyframes blink{50%{opacity:0}}
 
-  :root {
-    --bg: #0a0a0f;
-    --panel: #12121a;
-    --border: #2a2a3a;
-    --accent: #ff4444;
-    --accent2: #ffcc00;
-    --accent3: #44ffaa;
-    --text: #e8e8ff;
-    --muted: #666688;
-    --zone: rgba(255, 68, 68, 0.15);
-  }
+/* ── Lobby ── */
+#lobby{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);z-index:100;padding:16px;}
+.lobby-bg{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,68,68,0.05) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,68,68,0.05) 40px);pointer-events:none;}
+.game-title{font-family:'Press Start 2P';font-size:clamp(36px,10vw,88px);color:var(--accent);text-shadow:0 0 20px rgba(255,68,68,0.8),4px 4px 0 #8b0000,8px 8px 0 #4a0000;animation:titlePulse 2s ease-in-out infinite;letter-spacing:-2px;text-align:center;}
+@keyframes titlePulse{0%,100%{text-shadow:0 0 20px rgba(255,68,68,0.8),4px 4px 0 #8b0000,8px 8px 0 #4a0000;}50%{text-shadow:0 0 40px rgba(255,68,68,1),4px 4px 0 #8b0000,8px 8px 0 #4a0000;}}
+.game-sub{font-family:'Press Start 2P';font-size:clamp(7px,2vw,13px);color:var(--accent2);margin:10px 0 24px;letter-spacing:4px;text-align:center;}
+.lobby-card{background:var(--panel);border:2px solid var(--border);padding:24px;width:min(420px,95vw);}
+.lobby-tabs{display:flex;margin-bottom:20px;border-bottom:2px solid var(--border);}
+.lobby-tab{flex:1;padding:10px;font-family:'Press Start 2P';font-size:10px;background:none;border:none;color:var(--muted);cursor:pointer;letter-spacing:1px;transition:color 0.2s;}
+.lobby-tab.active{color:var(--accent2);border-bottom:2px solid var(--accent2);margin-bottom:-2px;}
+.tab-panel{display:none;}.tab-panel.active{display:block;}
+.lobby-label{font-size:18px;color:var(--muted);margin-bottom:8px;letter-spacing:2px;}
+.lobby-input{width:100%;background:#1a1a2e;border:2px solid var(--border);color:var(--text);font-family:'VT323';font-size:28px;padding:10px 14px;outline:none;margin-bottom:16px;transition:border-color 0.2s;}
+.lobby-input:focus{border-color:var(--accent);}
+.btn-join{width:100%;background:var(--accent);color:#fff;border:none;font-family:'Press Start 2P';font-size:14px;padding:14px;cursor:pointer;letter-spacing:2px;box-shadow:0 4px 0 #8b0000;transition:all 0.15s;}
+.btn-join:hover{transform:translateY(-2px);box-shadow:0 6px 0 #8b0000;}
+.btn-join:active{transform:translateY(2px);box-shadow:0 2px 0 #8b0000;}
+.controls-hint{margin-top:16px;color:var(--muted);font-size:16px;text-align:center;line-height:1.9;letter-spacing:1px;}
+#lb-list{min-height:120px;}
+.lb-row{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;margin:3px 0;background:rgba(255,255,255,0.04);font-size:18px;}
+.lb-rank{color:var(--muted);width:24px;}
+.lb-name{flex:1;padding:0 8px;}
+.lb-score{color:var(--accent2);}
+.lb-kills{color:var(--accent);margin-left:12px;}
+.lb-date{color:var(--muted);font-size:14px;margin-left:8px;}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'VT323', monospace;
-    overflow: hidden;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+/* ── HUD ── */
+#hud{position:fixed;top:0;left:0;right:0;display:none;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(10,10,15,0.88);border-bottom:1px solid var(--border);z-index:50;pointer-events:none;backdrop-filter:blur(4px);flex-wrap:wrap;gap:6px;}
+.hud-left{display:flex;align-items:center;gap:12px;}
+.bars{display:flex;flex-direction:column;gap:4px;}
+.bar-row{display:flex;align-items:center;gap:6px;}
+.bar-lbl{font-size:12px;color:var(--muted);width:36px;letter-spacing:1px;}
+.bar-outer{width:clamp(100px,18vw,180px);height:12px;background:#1a1a2e;border:1px solid var(--border);}
+.bar-inner{height:100%;transition:width 0.12s;}
+.bar-val{font-size:18px;min-width:30px;}
+.hud-center{text-align:center;flex:1;}
+.zone-label{font-family:'Press Start 2P';font-size:clamp(7px,1.5vw,11px);color:var(--accent);animation:zonePulse 1s ease-in-out infinite;}
+@keyframes zonePulse{0%,100%{opacity:1}50%{opacity:0.5}}
+#aliveCount{font-size:18px;color:var(--accent2);letter-spacing:2px;margin-top:3px;}
+.hud-right{display:flex;align-items:center;gap:10px;}
+#weaponBox{border:2px solid #aaa;padding:5px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:90px;}
+#weaponInfo{font-size:17px;display:flex;align-items:center;gap:5px;}
+#ammoInfo{font-size:13px;color:#888;letter-spacing:1px;}
+.stat-box{text-align:center;}
+.stat-val{font-size:clamp(20px,3vw,28px);color:var(--accent2);}
+.stat-lbl{font-size:11px;color:var(--muted);letter-spacing:2px;}
+#grenadeCount{font-size:20px;color:#88ff44;letter-spacing:1px;}
 
-  /* ── Lobby Screen ── */
-  #lobby {
-    position: fixed; inset: 0;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    background: var(--bg);
-    z-index: 100;
-  }
+/* ── Kill Feed ── */
+#killfeed{position:fixed;top:70px;right:12px;z-index:50;pointer-events:none;width:clamp(200px,30vw,280px);}
+.kf-item{background:rgba(10,10,15,0.88);border-left:3px solid var(--accent);padding:5px 9px;font-size:15px;margin-bottom:3px;animation:kfIn 0.2s ease-out;border-radius:0 3px 3px 0;}
+@keyframes kfIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
 
-  .lobby-bg {
-    position: absolute; inset: 0;
-    background: 
-      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,68,68,0.05) 40px),
-      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,68,68,0.05) 40px);
-    pointer-events: none;
-  }
+/* ── Minimap ── */
+.minimap-wrap{position:fixed;bottom:clamp(80px,15vw,100px);right:12px;z-index:50;pointer-events:none;}
+@media(min-width:600px){.minimap-wrap{bottom:12px;}}
+#minimap{border:2px solid var(--border);background:rgba(10,10,15,0.8);display:block;width:clamp(100px,15vw,160px);height:auto;aspect-ratio:4/3;}
 
-  .title-wrap {
-    text-align: center;
-    margin-bottom: 40px;
-    position: relative;
-  }
+/* ── Ghost HUD ── */
+#ghostHud{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;text-align:center;display:none;}
+#ghostHud.show{display:block;}
+.ghost-title{font-family:'Press Start 2P';font-size:clamp(16px,4vw,28px);color:#aaffee;text-shadow:0 0 20px #aaffee;margin-bottom:8px;}
+.ghost-prog{font-size:clamp(18px,4vw,26px);color:#fff;letter-spacing:2px;}
+.ghost-bar-outer{width:200px;height:14px;background:#1a1a2e;border:1px solid #aaffee;margin:8px auto 0;}
+.ghost-bar-inner{height:100%;background:#aaffee;transition:width 0.2s;}
 
-  .game-title {
-    font-family: 'Press Start 2P', monospace;
-    font-size: clamp(48px, 10vw, 96px);
-    color: var(--accent);
-    text-shadow: 
-      0 0 20px rgba(255,68,68,0.8),
-      0 0 40px rgba(255,68,68,0.4),
-      4px 4px 0 #8b0000,
-      8px 8px 0 #4a0000;
-    animation: titlePulse 2s ease-in-out infinite;
-    letter-spacing: -2px;
-  }
+/* ── Overlay ── */
+#overlay{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.75);z-index:80;backdrop-filter:blur(4px);padding:16px;}
+#overlay.show{display:flex;}
+.overlay-title{font-family:'Press Start 2P';font-size:clamp(20px,6vw,52px);margin-bottom:12px;}
+.overlay-sub{font-size:22px;color:var(--muted);margin-bottom:24px;}
+#scoreboard{display:none;width:min(340px,90vw);margin-bottom:20px;font-size:16px;}
+.btn-restart{background:var(--accent2);color:#000;border:none;font-family:'Press Start 2P';font-size:13px;padding:13px 26px;cursor:pointer;letter-spacing:2px;box-shadow:0 4px 0 #8b6000;transition:all 0.15s;}
+.btn-restart:hover{transform:translateY(-2px);}
 
-  @keyframes titlePulse {
-    0%, 100% { text-shadow: 0 0 20px rgba(255,68,68,0.8), 0 0 40px rgba(255,68,68,0.4), 4px 4px 0 #8b0000, 8px 8px 0 #4a0000; }
-    50% { text-shadow: 0 0 30px rgba(255,68,68,1), 0 0 60px rgba(255,68,68,0.6), 4px 4px 0 #8b0000, 8px 8px 0 #4a0000; }
-  }
+/* ── Canvas ── */
+#gameCanvas{display:block;cursor:crosshair;touch-action:none;position:fixed;top:0;left:0;}
 
-  .game-sub {
-    font-family: 'Press Start 2P', monospace;
-    font-size: clamp(8px, 2vw, 14px);
-    color: var(--accent2);
-    margin-top: 12px;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-  }
-
-  .lobby-card {
-    background: var(--panel);
-    border: 2px solid var(--border);
-    padding: 32px;
-    width: min(400px, 90vw);
-    position: relative;
-  }
-  .lobby-card::before {
-    content: '';
-    position: absolute;
-    top: -2px; left: -2px; right: -2px; bottom: -2px;
-    background: linear-gradient(45deg, var(--accent), transparent, var(--accent2), transparent);
-    z-index: -1;
-    animation: borderSpin 3s linear infinite;
-  }
-
-  @keyframes borderSpin {
-    0% { opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { opacity: 0.5; }
-  }
-
-  .lobby-label {
-    font-size: 20px;
-    color: var(--muted);
-    margin-bottom: 8px;
-    letter-spacing: 2px;
-  }
-
-  .lobby-input {
-    width: 100%;
-    background: #1a1a2e;
-    border: 2px solid var(--border);
-    color: var(--text);
-    font-family: 'VT323', monospace;
-    font-size: 28px;
-    padding: 12px 16px;
-    outline: none;
-    margin-bottom: 20px;
-    transition: border-color 0.2s;
-  }
-  .lobby-input:focus { border-color: var(--accent); }
-
-  .btn-join {
-    width: 100%;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 16px;
-    padding: 16px;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    transition: all 0.15s;
-    box-shadow: 0 4px 0 #8b0000;
-  }
-  .btn-join:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #8b0000; }
-  .btn-join:active { transform: translateY(2px); box-shadow: 0 2px 0 #8b0000; }
-
-  .controls-hint {
-    margin-top: 20px;
-    color: var(--muted);
-    font-size: 16px;
-    text-align: center;
-    line-height: 1.8;
-    letter-spacing: 1px;
-  }
-
-  /* ── HUD ── */
-  #hud {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 10px 16px;
-    background: rgba(10,10,15,0.85);
-    border-bottom: 1px solid var(--border);
-    z-index: 50;
-    pointer-events: none;
-    backdrop-filter: blur(4px);
-  }
-
-  .hud-left, .hud-right { display: flex; align-items: center; gap: 20px; }
-
-  .hp-bar-wrap { display: flex; flex-direction: column; gap: 4px; }
-  .hp-label { font-size: 14px; color: var(--muted); letter-spacing: 2px; }
-  .hp-bar-outer { width: 200px; height: 16px; background: #1a1a2e; border: 1px solid var(--border); }
-  .hp-bar-inner { height: 100%; background: var(--accent3); transition: width 0.15s; }
-  .hp-text { font-size: 22px; color: var(--accent3); }
-
-  .stat-box { text-align: center; }
-  .stat-val { font-size: 32px; color: var(--accent2); }
-  .stat-lbl { font-size: 12px; color: var(--muted); letter-spacing: 2px; }
-
-  .zone-timer { 
-    font-family: 'Press Start 2P', monospace;
-    font-size: 12px; color: var(--accent);
-    text-align: center;
-    animation: zonePulse 1s ease-in-out infinite;
-  }
-  @keyframes zonePulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-
-  .minimap-wrap {
-    position: fixed;
-    bottom: 16px; right: 16px;
-    z-index: 50;
-    pointer-events: none;
-  }
-  #minimap {
-    border: 2px solid var(--border);
-    background: rgba(10,10,15,0.8);
-    display: block;
-  }
-
-  /* ── Kill Feed ── */
-  #killfeed {
-    position: fixed;
-    top: 70px; right: 16px;
-    z-index: 50;
-    pointer-events: none;
-    width: 280px;
-  }
-  .kf-item {
-    background: rgba(10,10,15,0.85);
-    border-left: 3px solid var(--accent);
-    padding: 6px 10px;
-    font-size: 16px;
-    color: var(--text);
-    margin-bottom: 4px;
-    animation: kfIn 0.2s ease-out;
-    border-radius: 0 4px 4px 0;
-  }
-  @keyframes kfIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-  /* ── Dead / Win Overlay ── */
-  #overlay {
-    position: fixed; inset: 0;
-    display: none;
-    flex-direction: column;
-    align-items: center; justify-content: center;
-    background: rgba(0,0,0,0.7);
-    z-index: 80;
-    backdrop-filter: blur(4px);
-  }
-  #overlay.show { display: flex; }
-  .overlay-title {
-    font-family: 'Press Start 2P', monospace;
-    font-size: clamp(24px, 6vw, 56px);
-    margin-bottom: 16px;
-  }
-  .overlay-sub { font-size: 24px; color: var(--muted); margin-bottom: 32px; }
-  .btn-restart {
-    background: var(--accent2);
-    color: #000;
-    border: none;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 14px;
-    padding: 14px 28px;
-    cursor: pointer;
-    letter-spacing: 2px;
-    box-shadow: 0 4px 0 #8b6000;
-    transition: all 0.15s;
-  }
-  .btn-restart:hover { transform: translateY(-2px); }
-  .btn-restart:active { transform: translateY(2px); box-shadow: 0 2px 0 #8b6000; }
-
-  /* ── Canvas ── */
-  #gameCanvas {
-    display: block;
-    cursor: crosshair;
-    image-rendering: pixelated;
-  }
-
-  #connecting {
-    position: fixed; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--bg); z-index: 200;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 20px; color: var(--accent2);
-    animation: blink 1s step-end infinite;
-  }
-  @keyframes blink { 50%{opacity:0} }
-
-  .player-count {
-    font-size: 20px; color: var(--accent3);
-    text-align: center; margin-top: 12px;
-    letter-spacing: 2px;
-  }
-
-  #lobby-status {
-    margin-top: 16px; text-align: center;
-    font-size: 18px; color: var(--muted);
-    min-height: 24px;
-  }
+/* ── Mobile Controls ── */
+#mobileControls{position:fixed;bottom:0;left:0;right:0;height:160px;z-index:55;pointer-events:none;display:none;}
+@media(pointer:coarse){#mobileControls{display:block;}}
+#joystickZone{position:absolute;left:20px;bottom:20px;width:130px;height:130px;pointer-events:all;}
+#joystickBase{position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,0.1);border:2px solid rgba(255,255,255,0.25);}
+#joystickKnob{position:absolute;width:50px;height:50px;border-radius:50%;background:rgba(255,255,255,0.35);border:2px solid rgba(255,255,255,0.6);top:50%;left:50%;transform:translate(-50%,-50%);transition:transform 0.05s;}
+#fireBtn{position:absolute;right:24px;bottom:24px;width:80px;height:80px;border-radius:50%;background:rgba(255,68,68,0.4);border:3px solid rgba(255,68,68,0.8);pointer-events:all;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;user-select:none;-webkit-user-select:none;active:background:rgba(255,68,68,0.7);}
+#grenadeBtn{position:absolute;right:120px;bottom:36px;width:60px;height:60px;border-radius:50%;background:rgba(136,255,68,0.3);border:2px solid rgba(136,255,68,0.7);pointer-events:all;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;user-select:none;-webkit-user-select:none;}
 </style>
 </head>
 <body>
@@ -283,59 +112,59 @@
 
 <div id="lobby">
   <div class="lobby-bg"></div>
-  <div class="title-wrap">
-    <div class="game-title">ZONE</div>
-    <div class="game-sub">Retro Battle Royale</div>
-  </div>
+  <div class="game-title">ZONE</div>
+  <div class="game-sub">RETRO BATTLE ROYALE</div>
   <div class="lobby-card">
-    <div class="lobby-label">ENTER YOUR NAME</div>
-    <input class="lobby-input" id="nameInput" type="text" placeholder="PLAYER_1" maxlength="16" autocomplete="off" spellcheck="false">
-    <button class="btn-join" id="joinBtn">DROP IN</button>
-    <div id="lobby-status"></div>
-    <div class="controls-hint">
-      WASD / ARROWS — MOVE<br>
-      MOUSE — AIM &amp; SHOOT<br>
-      SURVIVE THE ZONE
+    <div class="lobby-tabs">
+      <button class="lobby-tab active" onclick="switchTab('play')">PLAY</button>
+      <button class="lobby-tab" onclick="switchTab('scores')">🏆 TOP SCORES</button>
+    </div>
+    <div class="tab-panel active" id="tab-play">
+      <div class="lobby-label">YOUR NAME</div>
+      <input class="lobby-input" id="nameInput" type="text" placeholder="PLAYER_1" maxlength="16" autocomplete="off" spellcheck="false">
+      <button class="btn-join" id="joinBtn">DROP IN</button>
+      <div class="controls-hint">
+        WASD — MOVE &nbsp;|&nbsp; MOUSE — AIM &amp; SHOOT<br>
+        G — THROW GRENADE<br>
+        DIE → become 👻 GHOST → collect 5 items → REVIVE!
+      </div>
+    </div>
+    <div class="tab-panel" id="tab-scores">
+      <div id="lb-list"><div style="color:var(--muted);font-size:18px;text-align:center;padding:20px">Loading...</div></div>
     </div>
   </div>
 </div>
 
 <div id="hud" style="display:none">
   <div class="hud-left">
-    <div style="display:flex;flex-direction:column;gap:5px">
-      <div class="hp-bar-wrap">
-        <div class="hp-label">HP</div>
-        <div class="hp-bar-outer"><div class="hp-bar-inner" id="hpBar" style="width:100%"></div></div>
+    <div class="bars">
+      <div class="bar-row">
+        <span class="bar-lbl">HP</span>
+        <div class="bar-outer"><div class="bar-inner" id="hpBar" style="width:100%;background:#44ffaa"></div></div>
+        <span class="bar-val" id="hpText">100</span>
       </div>
-      <div class="hp-bar-wrap" id="shieldRow" style="opacity:0.3">
-        <div class="hp-label" style="color:#4488ff">SHIELD</div>
-        <div class="hp-bar-outer"><div class="hp-bar-inner" id="shieldBar" style="width:0%;background:#4488ff"></div></div>
+      <div class="bar-row" id="shieldRow" style="opacity:0.3">
+        <span class="bar-lbl" style="color:#4488ff">SH</span>
+        <div class="bar-outer"><div class="bar-inner" id="shieldBar" style="width:0%;background:#4488ff"></div></div>
+        <span class="bar-val" style="color:#4488ff" id="shieldText">0</span>
       </div>
-    </div>
-    <div style="display:flex;flex-direction:column;align-items:center">
-      <div class="hp-text" id="hpText">100</div>
-      <div style="font-size:14px;color:#4488ff" id="shieldText">0</div>
     </div>
   </div>
-  <div style="text-align:center">
-    <div class="zone-timer" id="zoneTimer">ZONE ACTIVE</div>
-    <div id="aliveCount" style="font-size:18px;color:var(--accent2);margin-top:4px;letter-spacing:2px"></div>
+  <div class="hud-center">
+    <div class="zone-label" id="zoneTimer">ZONE ACTIVE</div>
+    <div id="aliveCount"></div>
   </div>
   <div class="hud-right">
-    <div id="weaponBox" style="border:2px solid #aaa;padding:6px 12px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:100px">
-      <div id="weaponInfo" style="font-size:18px;display:flex;align-items:center;gap:6px">🔫 Pistol</div>
-      <div id="ammoInfo" style="font-size:14px;color:#888;letter-spacing:1px">30 ammo</div>
+    <div id="weaponBox">
+      <div id="weaponInfo">🔫 Pistol</div>
+      <div id="ammoInfo">30 ammo</div>
     </div>
-    <div style="display:flex;gap:16px">
-      <div class="stat-box">
-        <div class="stat-val" id="killCount">0</div>
-        <div class="stat-lbl">KILLS</div>
-      </div>
-      <div class="stat-box">
-        <div class="stat-val" id="scoreCount" style="color:#44ffaa">0</div>
-        <div class="stat-lbl">SCORE</div>
-      </div>
+    <div style="text-align:center">
+      <div id="grenadeCount">💣 2</div>
+      <div style="font-size:11px;color:var(--muted);letter-spacing:1px">[G]</div>
     </div>
+    <div class="stat-box"><div class="stat-val" id="killCount">0</div><div class="stat-lbl">KILLS</div></div>
+    <div class="stat-box"><div class="stat-val" id="scoreCount" style="color:#44ffaa">0</div><div class="stat-lbl">SCORE</div></div>
   </div>
 </div>
 
@@ -345,16 +174,59 @@
   <canvas id="minimap" width="160" height="120"></canvas>
 </div>
 
+<div id="ghostHud">
+  <div class="ghost-title">👻 YOU ARE A GHOST</div>
+  <div class="ghost-prog" id="ghostProg">Collect items to revive!</div>
+  <div class="ghost-bar-outer"><div class="ghost-bar-inner" id="ghostBar" style="width:0%"></div></div>
+</div>
+
 <div id="overlay">
   <div class="overlay-title" id="overlayTitle">YOU DIED</div>
   <div class="overlay-sub" id="overlaySub">better luck next time</div>
-  <div id="scoreboard" style="display:none;width:320px;margin-bottom:24px;font-size:16px"></div>
+  <div id="scoreboard"></div>
   <button class="btn-restart" id="restartBtn">PLAY AGAIN</button>
 </div>
 
 <canvas id="gameCanvas"></canvas>
 
+<div id="mobileControls">
+  <div id="joystickZone">
+    <div id="joystickBase"></div>
+    <div id="joystickKnob"></div>
+  </div>
+  <div id="fireBtn">🔫</div>
+  <div id="grenadeBtn">💣</div>
+</div>
+
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/game.js"></script>
+<script>
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.lobby-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  event.target.classList.add('active');
+  if (name==='scores') loadLeaderboardUI();
+}
+function loadLeaderboardUI() {
+  if (window._socket) {
+    window._socket.emit('requestLeaderboard');
+    window._socket.once('leaderboard', renderLB);
+  }
+}
+function renderLB(data) {
+  const el=document.getElementById('lb-list');
+  if (!data||data.length===0){el.innerHTML='<div style="color:var(--muted);font-size:18px;text-align:center;padding:20px">No scores yet!</div>';return;}
+  const medals=['🥇','🥈','🥉'];
+  el.innerHTML=data.map((e,i)=>`
+    <div class="lb-row">
+      <span class="lb-rank">${medals[i]||'#'+(i+1)}</span>
+      <span class="lb-name">${e.name}</span>
+      <span class="lb-score">${e.score}pts</span>
+      <span class="lb-kills">${e.kills}💀</span>
+      <span class="lb-date">${e.date||''}</span>
+    </div>`).join('');
+}
+</script>
 </body>
 </html>
