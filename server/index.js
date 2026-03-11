@@ -93,6 +93,35 @@ function generateMap() {
     {x:1700,y:1000,w:80,h:60},{x:400,y:1100,w:60,h:80},
   ];
 }
+function isSpawnClear(x, y, walls) {
+  for (const w of walls) {
+    // Keep players at least PLAYER_RADIUS+4 away from any wall rect
+    const nr = PLAYER_RADIUS + 8;
+    if (x+nr > w.x && x-nr < w.x+w.w && y+nr > w.y && y-nr < w.y+w.h) return false;
+  }
+  return true;
+}
+
+function findSafeSpawn(walls) {
+  // Try fixed spawn points first, then random
+  const candidates = [
+    {x:300,y:300},{x:MAP_W-300,y:300},{x:300,y:MAP_H-300},{x:MAP_W-300,y:MAP_H-300},
+    {x:MAP_W/2,y:300},{x:MAP_W/2,y:MAP_H-300},{x:300,y:MAP_H/2},{x:MAP_W-300,y:MAP_H/2},
+    {x:800,y:500},{x:MAP_W-800,y:500},{x:800,y:MAP_H-500},{x:MAP_W-800,y:MAP_H-500},
+    {x:1200,y:900},{x:MAP_W/2,y:MAP_H/2-300},{x:MAP_W/2,y:MAP_H/2+300},
+  ];
+  for (const c of candidates) {
+    if (isSpawnClear(c.x, c.y, walls)) return { x: c.x, y: c.y };
+  }
+  // Fallback: random search
+  for (let i = 0; i < 200; i++) {
+    const x = TILE*3 + Math.random()*(MAP_W-TILE*6);
+    const y = TILE*3 + Math.random()*(MAP_H-TILE*6);
+    if (isSpawnClear(x, y, walls)) return { x, y };
+  }
+  return { x: MAP_W/2, y: MAP_H/2 }; // last resort
+}
+
 function spawnLoot() {
   const items = [];
   for (let i = 0; i < LOOT_SPAWN_COUNT; i++) {
@@ -165,16 +194,19 @@ function ghostEliminate(player, killerId) {
 }
 
 function checkWin() {
-  // Count players who are alive OR ghost (still in contention)
-  const active = Object.values(gameState.players).filter(p => p.alive || p.ghost);
-  const realAlive = Object.values(gameState.players).filter(p => p.alive && !p.ghost);
+  // Only truly alive (not ghost, not eliminated) players count
+  const realAlive = Object.values(gameState.players).filter(p => p.alive && !p.ghost && !p.eliminated);
+  const total = Object.keys(gameState.players).length;
 
-  if (realAlive.length <= 1 && Object.keys(gameState.players).length > 1 && !active.some(p=>p.ghost && !p.eliminated)) {
+  if (realAlive.length <= 1 && total > 1) {
+    // Eliminate any remaining ghosts — game is over
+    for (const p of Object.values(gameState.players)) {
+      if (p.ghost) { p.ghost = false; p.alive = false; p.eliminated = true; }
+    }
     if (realAlive.length === 1) {
       realAlive[0].score += 500;
       gameState.winner = realAlive[0].name;
       addKillFeed(`👑 ${gameState.winner} WINS THE ZONE!`);
-      // Save to leaderboard
       const lb = updateLeaderboard(realAlive[0].name, realAlive[0].score, realAlive[0].kills);
       gameState.leaderboard = lb;
     }
@@ -192,22 +224,16 @@ function checkWin() {
 }
 
 function resetGame() {
-  const spawns = [
-    {x:300,y:300},{x:MAP_W-300,y:300},{x:300,y:MAP_H-300},{x:MAP_W-300,y:MAP_H-300},
-    {x:MAP_W/2,y:300},{x:MAP_W/2,y:MAP_H-300},{x:300,y:MAP_H/2},{x:MAP_W-300,y:MAP_H/2},
-    {x:800,y:800},{x:MAP_W-800,y:800},{x:800,y:MAP_H-800},{x:MAP_W-800,y:MAP_H-800},
-  ];
   gameState.bullets=[]; gameState.grenades=[]; gameState.loot=spawnLoot();
   gameState.walls=generateMap();
   gameState.zone={x:MAP_W/2,y:MAP_H/2,r:Math.min(MAP_W,MAP_H)*0.65};
   gameState.phase='playing'; gameState.shrinkTimer=ZONE_SHRINK_INTERVAL;
   gameState.killFeed=[]; gameState.gameTimer=0; gameState.winner=null; gameState.scores={};
   shrinkPhase=0;
-  let si=0;
   for (const [,p] of Object.entries(gameState.players)) {
-    const sp=spawns[si++%spawns.length];
+    const sp = findSafeSpawn(gameState.walls);
     Object.assign(p,{
-      x:sp.x+(Math.random()-.5)*200, y:sp.y+(Math.random()-.5)*200,
+      x:sp.x, y:sp.y,
       hp:MAX_HP, shield:0, alive:true, ghost:false, ghostItems:0, ghostHp:3,
       eliminated:false, kills:0, score:0, vx:0, vy:0,
       weapon:'pistol', ammo:{pistol:30}, grenades:2, lastFire:0, lastGrenade:0,
@@ -419,7 +445,7 @@ const PLAYER_COLORS=['#FF6B6B','#FFE66D','#4ECDC4','#45B7D1','#96CEB4','#FF9FF3'
 io.on('connection', socket => {
   socket.on('join', ({name}) => {
     const color=PLAYER_COLORS[Object.keys(gameState.players).length%PLAYER_COLORS.length];
-    const sx=300+Math.random()*(MAP_W-600), sy=300+Math.random()*(MAP_H-600);
+    const {x:sx, y:sy} = findSafeSpawn(gameState.walls);
     gameState.players[socket.id]={
       x:sx,y:sy,vx:0,vy:0,
       hp:MAX_HP,shield:0,alive:true,
